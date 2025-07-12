@@ -23,6 +23,60 @@ class DatabaseManager():
         """
         self.db_path = str(Path(db_path).resolve())
 
+    def _execute(self, query: str, values: Tuple[Any, ...]) -> sqlite3.Cursor:
+        """
+        Internal method to execute a query with parameters using context manager.
+
+        Args:
+            query: SQL query string.
+            values: Tuple of values to bind.
+
+        Returns:
+            sqlite3.Cursor: Cursor after execution (detached from closed connection).
+
+        Raises:
+            DatabaseError: If execution fails.
+        """
+        try:
+            with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute(query, values)
+                conn.commit()
+
+                result_cursor = cursor.fetchall() if query.strip().upper().startswith("SELECT") else None
+                lastrowid = cursor.lastrowid
+                rowcount = cursor.rowcount
+
+            class CursorResult:
+                def __init__(self, rows=None, lastrowid=None, rowcount=None):
+                    self._rows = rows
+                    self.lastrowid = lastrowid
+                    self.rowcount = rowcount
+
+                def fetchall(self):
+                    return self._rows or []
+
+            return CursorResult(result_cursor, lastrowid, rowcount)
+
+        except sqlite3.IntegrityError as e:
+            raise DatabaseError(f"Constraint violation: {e}") from e
+        except sqlite3.OperationalError as e:
+            error_msg = str(e).lower()
+            if "locked" in error_msg:
+                raise DatabaseError("Database is locked - try again later") from e
+            elif "no such table" in error_msg:
+                raise DatabaseError(f"Table does not exist: {e}") from e
+            elif "syntax error" in error_msg:
+                raise DatabaseError(f"SQL syntax error: {e}") from e
+            else:
+                raise DatabaseError(f"Operational error: {e}") from e
+        except sqlite3.DatabaseError as e:
+            raise DatabaseError(f"Database error: {e}") from e
+        except Exception as e:
+            raise DatabaseError(f"Unexpected error during execution: {e}") from e
+
+
 
     def insert_many(self, query: str, values_list: List[Tuple[Any, ...]]) -> int:
         """
@@ -67,17 +121,15 @@ class DatabaseManager():
         except Exception as e:
             raise DatabaseError(f"Unexpected error during batch insert: {e}") from e
 
+
     def insert(self, query: str, values: Tuple[Any, ...]) -> int:
         """
         Execute an INSERT statement.
-
         Args:
             query: SQL INSERT query.
             values: Values to insert.
-
         Returns:
-            ID of the inserted row.
-
+            Row ID of the inserted record.
         Raises:
             DatabaseError: If insert fails or query is not INSERT.
         """
@@ -91,6 +143,7 @@ class DatabaseManager():
             raise DatabaseError("INSERT did not return a row ID")
 
         return row_id
+    
 
     def select(
         self, query: str, values: Optional[Tuple[Any, ...]] = None
@@ -171,7 +224,6 @@ class DatabaseManager():
         if not table_name or not table_name.strip():
             raise DatabaseError("Table name cannot be empty")
 
-        # Sanitize table name to prevent SQL injection
         if not table_name.replace("_", "").replace("-", "").isalnum():
             raise DatabaseError("Table name contains invalid characters")
 
@@ -203,6 +255,4 @@ class DatabaseManager():
         Explicitly close database connections.
         Note: Not needed with context managers, but provided for completeness.
         """
-        # With context managers, connections are automatically closed
-        # This method is here for explicit resource management if needed
         pass
