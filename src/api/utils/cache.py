@@ -1,6 +1,8 @@
 from cachetools import TTLCache, cached
 
 default_cache = TTLCache(maxsize=500, ttl=600)
+
+
 def cache_with_default(func):
     """
     Decorator to cache the result of a function with a default TTLCache.

@@ -9,7 +9,9 @@ from jose import jwt, JWTError
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
     """
     Generates a JWT access token with an expiration time.
 
@@ -46,20 +48,70 @@ def decode_token(token: str) -> Optional[Dict[str, Any]]:
 def get_current_user(token: str = Depends(oauth2_scheme)) -> Dict[str, Any]:
     """
     Retrieves the current user from the JWT token.
-
     Args:
-        token (str): JWT token extracted from the request.
-
+        token (str): The JWT token from the request.
     Returns:
-        Dict[str, Any]: Payload with user info.
-
+        Dict[str, Any]: The user information extracted from the token.
     Raises:
-        HTTPException: If the token is invalid or user data is missing.
+        HTTPException: If the token is invalid or expired.
     """
     payload = decode_token(token)
-    if payload is None or "username" not in payload:
+    
+    if payload is None or payload.get("type") != "access" or "sub" not in payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
+            detail="Invalid authentication credentials",
         )
-    return {"username": payload["username"]}
+    
+    return {"username": payload["sub"]}
+
+
+def create_refresh_token(
+    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
+    """
+    Generates a JWT refresh token with an expiration time.
+
+    Args:
+        data (Dict[str, Any]): Data to encode into the token.
+        expires_delta (Optional[timedelta]): Optional time delta for token expiration.
+
+    Returns:
+        str: Encoded JWT refresh token.
+    """
+    to_encode = data.copy()
+    to_encode.update({"type": "refresh"})
+    expire = datetime.utcnow() + (expires_delta or timedelta(days=7))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def verify_refresh_token(token: str) -> Dict[str, Any]:
+    """
+    Verifies and decodes a refresh token.
+
+    Args:
+        token (str): JWT refresh token.
+
+    Returns:
+        Dict[str, Any]: Payload if valid.
+
+    Raises:
+        HTTPException: If token is invalid or not a refresh token.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type"
+            )
+        if "sub" not in payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
+            )
+        return payload
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )

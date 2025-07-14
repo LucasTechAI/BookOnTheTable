@@ -3,12 +3,12 @@ from pathlib import Path
 import sys
 import os
 
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(ROOT_DIR)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DB_PATH = BASE_DIR / "instance" / "bookonthetable.db"
 
-from utils.database_manager import DatabaseManager 
+from utils.database_manager import DatabaseManager
 from scraping import BooksScraper
 
 
@@ -16,6 +16,7 @@ basicConfig(level=INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = getLogger(__name__)
 
 manager = DatabaseManager(str(DB_PATH))
+
 
 def __summary(books) -> None:
     """
@@ -31,7 +32,7 @@ def __summary(books) -> None:
 
     from collections import Counter
 
-    category_counts = Counter(book['category'] for book in books)
+    category_counts = Counter(book["category"] for book in books)
     total_categories = len(category_counts)
 
     logger.info(f"Total categories found: {total_categories}")
@@ -66,16 +67,16 @@ def save_books_to_db(books: list) -> None:
 
     values_list = [
         (
-            book['title'],
-            book['price'],
-            book['rating'],
-            book['availability'],
-            book['category'],
-            book['description'],
-            book['image_url'],
-            book['book_url'],
-            book['page_number'],
-            book['scraped_at']
+            book["title"],
+            book["price"],
+            book["rating"],
+            book["availability"],
+            book["category"],
+            book["description"],
+            book["image_url"],
+            book["book_url"],
+            book["page_number"],
+            book["scraped_at"],
         )
         for book in books
     ]
@@ -93,11 +94,13 @@ def main():
         books = scraper.scrape_all_books()
 
         save_books_to_db(books)
-        
+
         __summary(books)
     except KeyboardInterrupt:
         logger.info("Scraping interrupted by user.")
     except Exception as e:
         logger.error(f"An error occurred during scraping: {e}")
 
-if __name__ == "__main__": main()
+
+if __name__ == "__main__":
+    main()

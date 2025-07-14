@@ -44,7 +44,7 @@ class Logger:
                 ip_address,
                 username,
                 query_params,
-                request_body[:500],  
+                request_body[:500],
             ),
         )
 
@@ -76,7 +76,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         start_time = time()
 
         response = await call_next(request)
-        process_time = (time() - start_time) * 1000 
+        process_time = (time() - start_time) * 1000
 
         timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime())
         method = request.method
@@ -97,7 +97,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 payload = decode_token(token)
                 username = payload.get("username")
             except Exception:
-                pass  
+                pass
 
         self.logger.log(
             timestamp,

@@ -5,10 +5,11 @@ import sqlite3
 
 class DatabaseError(Exception):
     """Custom exception for database operations."""
+
     pass
 
 
-class DatabaseManager():
+class DatabaseManager:
     """Simplified SQLite database manager with comprehensive error handling."""
 
     def __init__(self, db_path: str):
@@ -44,7 +45,11 @@ class DatabaseManager():
                 cursor.execute(query, values)
                 conn.commit()
 
-                result_cursor = cursor.fetchall() if query.strip().upper().startswith("SELECT") else None
+                result_cursor = (
+                    cursor.fetchall()
+                    if query.strip().upper().startswith("SELECT")
+                    else None
+                )
                 lastrowid = cursor.lastrowid
                 rowcount = cursor.rowcount
 
@@ -76,8 +81,6 @@ class DatabaseManager():
         except Exception as e:
             raise DatabaseError(f"Unexpected error during execution: {e}") from e
 
-
-
     def insert_many(self, query: str, values_list: List[Tuple[Any, ...]]) -> int:
         """
         Executes a batch INSERT using executemany.
@@ -95,7 +98,9 @@ class DatabaseManager():
         if not query.strip().upper().startswith("INSERT"):
             raise DatabaseError("Query must be an INSERT statement")
 
-        if not isinstance(values_list, list) or not all(isinstance(item, tuple) for item in values_list):
+        if not isinstance(values_list, list) or not all(
+            isinstance(item, tuple) for item in values_list
+        ):
             raise DatabaseError("Values must be a list of tuples")
 
         try:
@@ -121,7 +126,6 @@ class DatabaseManager():
         except Exception as e:
             raise DatabaseError(f"Unexpected error during batch insert: {e}") from e
 
-
     def insert(self, query: str, values: Tuple[Any, ...]) -> int:
         """
         Execute an INSERT statement.
@@ -143,7 +147,6 @@ class DatabaseManager():
             raise DatabaseError("INSERT did not return a row ID")
 
         return row_id
-    
 
     def select(
         self, query: str, values: Optional[Tuple[Any, ...]] = None
@@ -206,7 +209,6 @@ class DatabaseManager():
 
         cursor = self._execute(query, values)
         return cursor.rowcount
-
 
     def table_exists(self, table_name: str) -> bool:
         """

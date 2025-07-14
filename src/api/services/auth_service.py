@@ -49,12 +49,13 @@ def get_user(username: str) -> Optional[Dict[str, str]]:
         logger.info(f"Retrieving user with username: {username}")
         rows = manager.select(
             "SELECT username, hashed_password FROM users WHERE username = ? LIMIT 1",
-            (username,)
+            (username,),
         )
-        if not rows: return None
+        if not rows:
+            return None
         user_info = {
             "username": rows[0]["username"],
-            "hashed_password": rows[0]["hashed_password"]
+            "hashed_password": rows[0]["hashed_password"],
         }
         return user_info
     except Exception as e:
@@ -75,21 +76,18 @@ def create_user(username: str, password: str) -> Optional[Dict[str, str | int]]:
         logger.info(f"Creating user with username: {username}")
         if get_user(username):
             logger.warning(f"User {username} already exists.")
-            return None  
+            return None
 
         hashed = pwd_context.hash(password)
         inserted_id = manager.insert(
             "INSERT INTO users (username, hashed_password) VALUES (?, ?)",
-            (username, hashed)
+            (username, hashed),
         )
-        return {
-            "id": inserted_id,
-            "username": username
-        }
+        return {"id": inserted_id, "username": username}
     except Exception as e:
         logger.error(f"Error creating user {username}: {e}")
         return None
-    
+
 
 def authenticate_user(username: str, password: str) -> Dict[str, str]:
     """
@@ -97,7 +95,7 @@ def authenticate_user(username: str, password: str) -> Dict[str, str]:
 
     Returns:
         dict: Contains 'username' if authenticated successfully.
-    
+
     Raises:
         HTTPException: If authentication fails.
     """
@@ -108,14 +106,16 @@ def authenticate_user(username: str, password: str) -> Dict[str, str]:
             logger.warning(f"Authentication failed: user '{username}' not found.")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password"
+                detail="Invalid username or password",
             )
-        
+
         if not verify_password(password, user["hashed_password"]):
-            logger.warning(f"Authentication failed: incorrect password for user '{username}'.")
+            logger.warning(
+                f"Authentication failed: incorrect password for user '{username}'."
+            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password"
+                detail="Invalid username or password",
             )
 
         return {"username": username}
@@ -126,6 +126,5 @@ def authenticate_user(username: str, password: str) -> Dict[str, str]:
         logger.error(f"Error during authentication for user '{username}': {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error during authentication"
+            detail="Internal server error during authentication",
         )
-    

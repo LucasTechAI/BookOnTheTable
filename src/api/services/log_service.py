@@ -40,7 +40,7 @@ def delete_all_logs() -> str:
     try:
         logger.info("Deleting all logs from the database.")
         query = "DELETE FROM logs"
-        rowcount = manager.delete(query)
+        rowcount = manager.delete(query, ())
         logger.info(f"Deleted {rowcount} log entries.")
         return f"{rowcount} logs deleted successfully."
     except Exception as e:
