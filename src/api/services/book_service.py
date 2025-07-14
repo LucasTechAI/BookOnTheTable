@@ -46,7 +46,7 @@ def get_book_by_id(book_id: int) -> list:
     except Exception as e:
         logger.error(f"Error fetching book with ID {book_id}: {e}")
         return []
-    
+
 
 @cache_with_default
 def search_books(title: str = None, category: str = None) -> list:
@@ -58,8 +58,10 @@ def search_books(title: str = None, category: str = None) -> list:
     Returns:
         list: A list of dictionaries representing the books that match the search criteria.
     """
-    try: 
-        logger.info(f"Searching for books with title '{title}' and category '{category}'.")
+    try:
+        logger.info(
+            f"Searching for books with title '{title}' and category '{category}'."
+        )
         query = "SELECT * FROM books WHERE 1=1"
         params = []
 

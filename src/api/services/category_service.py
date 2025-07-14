@@ -10,6 +10,7 @@ manager = DatabaseManager(str(DB_PATH))
 logger = getLogger(__name__)
 basicConfig(level=INFO, format=FORMAT)
 
+
 @cache_with_default
 def get_all_categories() -> list[dict]:
     """
@@ -20,7 +21,9 @@ def get_all_categories() -> list[dict]:
     """
     try:
         logger.info("Fetching all unique book categories from the database.")
-        categories = manager.select("SELECT DISTINCT category FROM books ORDER BY category")
+        categories = manager.select(
+            "SELECT DISTINCT category FROM books ORDER BY category"
+        )
         return categories
     except Exception as e:
         logger.error(f"Error fetching categories: {e}")

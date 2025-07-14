@@ -2,7 +2,22 @@ from fastapi import APIRouter
 
 router = APIRouter(tags=["Home"])
 
-@router.get("/")
+
+@router.get(
+    "/",
+    summary="Root Endpoint",
+    description="Root endpoint for the BookOnTheTable API",
+    responses={
+        200: {
+            "description": "Welcome message",
+            "content": {
+                "application/json": {
+                    "example": {"message": "Welcome to the BookOnTheTable API 🚀"}
+                }
+            },
+        }
+    },
+)
 def read_root() -> dict:
     """
     Root endpoint for the BookOnTheTable API.
