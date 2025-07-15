@@ -1,7 +1,7 @@
-from api.services.category_service import get_all_categories
+from src.api.services.category_service import get_all_categories
 from src.api.utils.jwt_handler import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
-from api.schemas.categories_schema import CategoryResponse, Categories
+from src.api.schemas.categories_schema import CategoryResponse, Categories
 
 router = APIRouter(prefix="/api/v1/categories", tags=["Categories"])
 

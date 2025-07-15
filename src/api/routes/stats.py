@@ -1,10 +1,10 @@
-from api.schemas.stats_schema import (
+from src.api.schemas.stats_schema import (
     Categories,
     CategoriesResponse,
     Overview,
     OverviewResponse,
 )
-from api.services.stats_service import get_overview_stats, get_category_stats
+from src.api.services.stats_service import get_overview_stats, get_category_stats
 from src.api.utils.jwt_handler import get_current_user
 from fastapi import APIRouter, Depends
 

@@ -1,7 +1,7 @@
-from api.services.log_service import get_all_logs, delete_all_logs
+from src.api.services.log_service import get_all_logs, delete_all_logs
 from fastapi import APIRouter, HTTPException, Query, Depends
-from api.utils.jwt_handler import get_current_user
-from api.schemas.logs_schema import LogResponse, Logs, LogDelete
+from src.api.utils.jwt_handler import get_current_user
+from src.api.schemas.logs_schema import LogResponse, Logs, LogDelete
 from typing import List
 
 router = APIRouter(prefix="/api/v1/logs", tags=["Logs"])
