@@ -7,7 +7,7 @@ from typing import Optional
 from utils.database_manager import DatabaseManager
 from src.api.utils.jwt_handler import decode_token
 
-DB_PATH = Path(__file__).resolve().parents[3] / "instance" / "bookonthetable.db"
+DB_PATH = Path(__file__).resolve().parents[3] / "tmp" / "bookonthetable.db"
 
 
 class Logger:
