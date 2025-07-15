@@ -2,7 +2,6 @@ from .routes import auth, books, categories, health, stats, home, logs
 from src.api.middleware.logging_middleware import LoggingMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-from uvicorn import run
 
 app = FastAPI(
     title="BookOnTheTable API",
