@@ -98,8 +98,8 @@ class DatabaseManager:
         if not query.strip().upper().startswith("INSERT"):
             raise DatabaseError("Query must be an INSERT statement")
 
-        if not isinstance(values_list, list) or not all(
-            isinstance(item, tuple) for item in values_list
+        if not istmp(values_list, list) or not all(
+            istmp(item, tuple) for item in values_list
         ):
             raise DatabaseError("Values must be a list of tuples")
 

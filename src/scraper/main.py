@@ -6,7 +6,7 @@ import os
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(ROOT_DIR)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DB_PATH = BASE_DIR / "instance" / "bookonthetable.db"
+DB_PATH = BASE_DIR / "tmp" / "bookonthetable.db"
 
 from utils.database_manager import DatabaseManager
 from scraping import BooksScraper
