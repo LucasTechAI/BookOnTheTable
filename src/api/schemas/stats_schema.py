@@ -13,7 +13,7 @@ class OverviewResponse(BaseModel):
 
     class Config:
         title = "StatsResponse"
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "total_books": 123,
                 "average_price": 45.67,
@@ -77,7 +77,7 @@ class CategoryStats(BaseModel):
     average_price: float
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {"name": "Fiction", "total_books": 50, "average_price": 36.07}
         }
 
@@ -90,7 +90,7 @@ class CategoriesResponse(BaseModel):
     categories: List[CategoryStats]
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "categories": [
                     {"name": "Fiction", "total_books": 12, "average_price": 34.56},

@@ -7,7 +7,7 @@ class HealthResponse(BaseModel):
 
     class Config:
         title = "HealthResponse"
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "status": "ok",
                 "message": "API is healthy and database is connected.",

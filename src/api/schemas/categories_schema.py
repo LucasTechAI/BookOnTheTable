@@ -6,7 +6,7 @@ class CategoryResponse(BaseModel):
     category: str
 
     class Config:
-        schema_extra = {"example": {"category": "Fiction"}}
+        json_schema_extra = {"example": {"category": "Fiction"}}
 
 
 class Categories:
