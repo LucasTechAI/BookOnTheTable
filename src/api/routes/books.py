@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, List
 
-from api.services.book_service import (
+from src.api.services.book_service import (
     get_all_books,
     get_book_by_id,
     search_books,
@@ -9,7 +9,7 @@ from api.services.book_service import (
     get_price_range_books,
 )
 from src.api.utils.jwt_handler import get_current_user
-from api.schemas.books_schema import (
+from src.api.schemas.books_schema import (
     Books,
     Search,
     TopRated,
