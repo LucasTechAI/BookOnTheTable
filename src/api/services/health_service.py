@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 
 FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-DB_PATH = os.path.join(os.path.dirname(__file__), "../../../instance/bookonthetable.db")
+DB_PATH = os.path.join(os.path.dirname(__file__), "../../../tmp/bookonthetable.db")
 DB_PATH = os.path.abspath(DB_PATH)
 manager = DatabaseManager(str(DB_PATH))
 
