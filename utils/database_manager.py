@@ -22,7 +22,16 @@ class DatabaseManager:
         Raises:
             DatabaseError: If database setup fails.
         """
-        self.db_path = str(Path(db_path).resolve())
+        original_path = Path(db_path).resolve()
+        tmp_path = Path("/tmp") / original_path.name
+
+        try:
+            if not tmp_path.exists():
+                tmp_path.write_bytes(original_path.read_bytes())
+        except Exception as e:
+            raise DatabaseError(f"Failed to copy DB to /tmp: {e}") from e
+
+        self.db_path = str(tmp_path)
 
     def _execute(self, query: str, values: Tuple[Any, ...]) -> sqlite3.Cursor:
         """
