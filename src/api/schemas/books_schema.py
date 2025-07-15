@@ -18,7 +18,7 @@ class BookResponse(BaseModel):
 
     class Config:
         title = "BookResponse"
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": 1,
                 "title": "It's Only the Himalayas",
