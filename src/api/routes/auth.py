@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Body
 from datetime import timedelta
 
-from api.utils.jwt_handler import (
+from src.api.utils.jwt_handler import (
     create_access_token,
     get_current_user,
     verify_refresh_token,
 )
-from api.services.auth_service import authenticate_user, create_user
-from api.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from api.schemas.auth_schema import (
+from src.api.services.auth_service import authenticate_user, create_user
+from src.api.config import ACCESS_TOKEN_EXPIRE_MINUTES
+from src.api.schemas.auth_schema import (
     UserRequest,
     TokenResponse,
     Register,

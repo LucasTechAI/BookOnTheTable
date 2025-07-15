@@ -5,7 +5,7 @@ from time import time, strftime, gmtime
 from json import dumps
 from typing import Optional
 from utils.database_manager import DatabaseManager
-from api.utils.jwt_handler import decode_token
+from src.api.utils.jwt_handler import decode_token
 
 DB_PATH = Path(__file__).resolve().parents[3] / "instance" / "bookonthetable.db"
 
