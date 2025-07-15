@@ -4,7 +4,7 @@ from logging import getLogger, basicConfig, INFO
 from pathlib import Path
 
 FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-DB_PATH = Path(__file__).resolve().parents[3] / "instance" / "bookonthetable.db"
+DB_PATH = Path(__file__).resolve().parents[3] / "tmp" / "bookonthetable.db"
 manager = DatabaseManager(str(DB_PATH))
 
 logger = getLogger(__name__)

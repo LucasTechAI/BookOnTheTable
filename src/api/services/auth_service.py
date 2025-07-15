@@ -7,7 +7,7 @@ import sys
 
 FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 ROOT_DIR = Path(__file__).resolve().parents[3]
-DB_PATH = ROOT_DIR / "instance" / "bookonthetable.db"
+DB_PATH = ROOT_DIR / "tmp" / "bookonthetable.db"
 sys.path.append(str(ROOT_DIR))
 
 from utils.database_manager import DatabaseManager

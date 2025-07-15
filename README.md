@@ -9,7 +9,7 @@ Project Structure
 .
 ├── books_data.csv               # Extracted book data
 ├── docs                         # Documentation and challenge materials
-├── instance/bookonthetable.db   # SQLite database
+├── tmp/bookonthetable.db   # SQLite database
 ├── main.py                      # Main execution entrypoint
 ├── README.md                    # Project README
 ├── requirements.txt             # Python dependencies
@@ -41,7 +41,7 @@ Getting Started
 
 4. Initialize the database:
 
-    sqlite3 instance/bookonthetable.db < setup/creator.sql
+    sqlite3 tmp/bookonthetable.db < setup/creator.sql
 
 5. Run the application:
 
