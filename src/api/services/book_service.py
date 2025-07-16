@@ -23,6 +23,7 @@ def get_all_books() -> list:
     try:
         logger.info("Fetching all books from the database.")
         books = manager.select("SELECT * FROM books")
+        books = [dict(row) for row in books]
         return books
     except Exception as e:
         logger.error(f"Error fetching books: {e}")
@@ -41,7 +42,7 @@ def get_book_by_id(book_id: int) -> list:
     try:
         logger.info(f"Fetching book with ID {book_id} from the database.")
         rows = manager.select("SELECT * FROM books WHERE id = ? LIMIT 1", (book_id,))
-        book = rows[0] if rows else []
+        book = [dict(row) for row in rows]
         return book
     except Exception as e:
         logger.error(f"Error fetching book with ID {book_id}: {e}")
@@ -73,6 +74,7 @@ def search_books(title: str = None, category: str = None) -> list:
             query += " AND LOWER(category) = ?"
             params.append(category.lower())
         results = manager.select(query, tuple(params))
+        results = [dict(row) for row in results]
         return results
     except Exception as e:
         logger.error(f"Error searching for books: {e}")
@@ -96,6 +98,7 @@ def get_top_rated_books(limit: int = 10) -> list:
             LIMIT ?
         """
         top_books = manager.select(query, (limit,))
+        top_books = [dict(row) for row in top_books]
         return top_books
     except Exception as e:
         logger.error(f"Error fetching top-rated books: {e}")
@@ -120,6 +123,7 @@ def get_price_range_books(min_price: float = 0.0, max_price: float = 0.0) -> lis
             ORDER BY price ASC
         """
         books = manager.select(query, (min_price, max_price))
+        books = [dict(row) for row in books]
         return books
     except Exception as e:
         logger.error(f"Error fetching books by price range: {e}")

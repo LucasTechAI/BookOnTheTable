@@ -65,7 +65,7 @@ def get_category_stats() -> dict:
             ORDER BY category
         """
         )
-        return {
+        categories = {
             "categories": [
                 {
                     "name": row["category"],
@@ -75,6 +75,7 @@ def get_category_stats() -> dict:
                 for row in categories
             ]
         }
+        return categories
     except Exception as e:
         logger.error(f"Error retrieving category statistics: {e}")
         return {"categories": []}
