@@ -113,6 +113,7 @@ def book_id(
         HTTPException: If the book with the specified ID is not found.
     """
     book = get_book_by_id(book_id)
+    book = book[0] if book else None
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
     return BookResponse(**book)
