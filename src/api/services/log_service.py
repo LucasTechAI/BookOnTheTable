@@ -25,6 +25,7 @@ def get_all_logs(limit: int = 100) -> list:
         logger.info(f"Retrieving the last {limit} logs from the database.")
         query = "SELECT * FROM logs ORDER BY timestamp DESC LIMIT ?"
         logs = manager.select(query, (limit,))
+        logs = [dict(row) for row in logs]
         return logs
     except Exception as e:
         logger.error(f"Error retrieving logs: {e}")

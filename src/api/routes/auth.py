@@ -76,5 +76,4 @@ def refresh_token(refresh_token: str = Body(..., embed=True)) -> TokenResponse:
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
 
-    # opcional: manter o mesmo refresh token
     return TokenResponse(access_token=new_access_token, refresh_token=refresh_token)
