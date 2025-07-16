@@ -65,28 +65,45 @@ def get_user(username: str) -> Optional[Dict[str, str]]:
 
 def create_user(username: str, password: str) -> Optional[Dict[str, str | int]]:
     """
-    Creates a new user in the database.
+    Creates a new user with the given username and password.
+    If a user with the same username already exists with the same password, returns None.
+    If the username already exists with a different password, appends a suffix to the username.
     Args:
-        username (str): The username of the new user.
+        username (str): The desired username for the new user.
         password (str): The password for the new user.
     Returns:
-        dict: A dictionary containing the new user's ID and username, or None if the user already exists.
+        dict: A dictionary containing the new user's ID and username if created successfully,
+              or None if a user with the same username and password already exists.
     """
     try:
-        logger.info(f"Creating user with username: {username}")
-        if get_user(username):
-            logger.warning(f"User {username} already exists.")
-            return None
-
+        logger.info(f"Tentando criar usuário com username: {username}")
+        
+        existing_user = get_user(username)
         hashed = pwd_context.hash(password)
+        
+        if existing_user:
+            if pwd_context.verify(password, existing_user["hashed_password"]):
+                logger.warning(f"Usuário {username} já existe com mesma senha.")
+                return None
+            else:
+                base_username = username
+                suffix = 1
+                
+                while get_user(f"{base_username}{suffix}") is not None:
+                    suffix += 1
+                
+                username = f"{base_username}{suffix}"
+                logger.info(f"Username alterado para {username} por conflito de senha.")
+        
         inserted_id = manager.insert(
             "INSERT INTO users (username, hashed_password) VALUES (?, ?)",
             (username, hashed),
         )
         return {"id": inserted_id, "username": username}
     except Exception as e:
-        logger.error(f"Error creating user {username}: {e}")
+        logger.error(f"Erro criando usuário {username}: {e}")
         return None
+
 
 
 def authenticate_user(username: str, password: str) -> Dict[str, str]:
