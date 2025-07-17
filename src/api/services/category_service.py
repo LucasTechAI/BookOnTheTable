@@ -21,6 +21,7 @@ def get_all_categories() -> list[dict]:
         logger.info("Fetching all unique book categories from the database.")
         rows = manager.select("SELECT category FROM books")
         categories_raw = [row["category"].strip() for row in rows if row["category"]]
+        logger.info(f"Raw categories fetched: {categories_raw}")
 
         unique_normalized = sorted(set(c.strip() for c in categories_raw))
 
@@ -28,4 +29,4 @@ def get_all_categories() -> list[dict]:
         return categories
     except Exception as e:
         logger.error(f"Error fetching categories: {e}")
-        return []
+        return None
