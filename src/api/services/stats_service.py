@@ -1,5 +1,5 @@
 from utils.database_manager import DatabaseManager
-from src.api.utils.cache import cache_with_default
+from src.api.utils.cache import cache_with_stats
 from logging import getLogger, basicConfig, INFO
 from pathlib import Path
 
@@ -34,6 +34,9 @@ def get_overview_stats() -> dict:
         """
         )
         ratings_distribution = {str(row["rating"]): row["count"] for row in ratings}
+        logger.info(
+            f"Overview stats - Total Books: {total_books}, Average Price: {avg_price}, Ratings Distribution: {ratings_distribution}"
+        )
         return {
             "total_books": total_books,
             "average_price": avg_price,
@@ -41,10 +44,10 @@ def get_overview_stats() -> dict:
         }
     except Exception as e:
         logger.error(f"Error retrieving overview statistics: {e}")
-        return {"total_books": 0, "average_price": 0.0, "ratings_distribution": {}}
+        return None
 
 
-@cache_with_default
+@cache_with_stats
 def get_category_stats() -> dict:
     """
     Retrieve detailed statistics by category.
@@ -75,7 +78,8 @@ def get_category_stats() -> dict:
                 for row in categories
             ]
         }
+        logger.info(f"Retrieved category statistics: {categories}")
         return categories
     except Exception as e:
         logger.error(f"Error retrieving category statistics: {e}")
-        return {"categories": []}
+        return None

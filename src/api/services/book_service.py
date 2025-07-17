@@ -1,5 +1,11 @@
 from utils.database_manager import DatabaseManager
-from src.api.utils.cache import cache_with_default
+from src.api.utils.cache import (
+    cache_with_books,
+    cache_with_books_id,
+    cache_with_search_books,
+    cache_with_top_rated_books,
+    cache_with_price_range_books,
+)
 from logging import getLogger, basicConfig, INFO
 from pathlib import Path
 
@@ -12,7 +18,7 @@ logger = getLogger(__name__)
 basicConfig(level=INFO, format=FORMAT)
 
 
-@cache_with_default
+@cache_with_books
 def get_all_books() -> list:
     """
     Retrieve all books from the database.
@@ -24,13 +30,14 @@ def get_all_books() -> list:
         logger.info("Fetching all books from the database.")
         books = manager.select("SELECT * FROM books")
         books = [dict(row) for row in books]
+        logger.info(f"Retrieved {len(books)}, type: {type(books)}")
         return books
     except Exception as e:
         logger.error(f"Error fetching books: {e}")
-        return []
+        return None
 
 
-@cache_with_default
+@cache_with_books_id
 def get_book_by_id(book_id: int) -> list:
     """
     Retrieve a specific book by its ID.
@@ -43,13 +50,14 @@ def get_book_by_id(book_id: int) -> list:
         logger.info(f"Fetching book with ID {book_id} from the database.")
         rows = manager.select("SELECT * FROM books WHERE id = ? LIMIT 1", (book_id,))
         book = [dict(row) for row in rows]
+        logger.info(f"Retrieved book: {book}, type: {type(book)}")
         return book
     except Exception as e:
         logger.error(f"Error fetching book with ID {book_id}: {e}")
-        return []
+        return None
 
 
-@cache_with_default
+@cache_with_search_books
 def search_books(title: str = None, category: str = None) -> list:
     """
     Search for books by title and/or category.
@@ -75,13 +83,14 @@ def search_books(title: str = None, category: str = None) -> list:
             params.append(category.lower())
         results = manager.select(query, tuple(params))
         results = [dict(row) for row in results]
+        logger.info(f"Retrieved Search: {results}, type: {type(results)}")
         return results
     except Exception as e:
         logger.error(f"Error searching for books: {e}")
-        return []
+        return None
 
 
-@cache_with_default
+@cache_with_top_rated_books
 def get_top_rated_books(limit: int = 10) -> list:
     """
     Retrieve the top-rated books from the database.
@@ -99,13 +108,14 @@ def get_top_rated_books(limit: int = 10) -> list:
         """
         top_books = manager.select(query, (limit,))
         top_books = [dict(row) for row in top_books]
+        logger.info(f"Retrieved Top Books: {top_books}, type: {type(top_books)}")
         return top_books
     except Exception as e:
         logger.error(f"Error fetching top-rated books: {e}")
-        return []
+        return None
 
 
-@cache_with_default
+@cache_with_price_range_books
 def get_price_range_books(min_price: float = 0.0, max_price: float = 0.0) -> list:
     """
     Retrieve books within a specified price range.
@@ -124,7 +134,8 @@ def get_price_range_books(min_price: float = 0.0, max_price: float = 0.0) -> lis
         """
         books = manager.select(query, (min_price, max_price))
         books = [dict(row) for row in books]
+        logger.info(f"Retrieved Price Range Books: {books}, type: {type(books)}")
         return books
     except Exception as e:
         logger.error(f"Error fetching books by price range: {e}")
-        return []
+        return None

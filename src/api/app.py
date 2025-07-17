@@ -1,4 +1,4 @@
-from .routes import auth, books, categories, health, stats, home, logs
+from .routes import auth, books, categories, health, stats, home, logs, ml
 from src.api.middleware.logging_middleware import LoggingMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
@@ -36,4 +36,5 @@ app.include_router(books.router)
 app.include_router(categories.router)
 app.include_router(health.router)
 app.include_router(stats.router)
+app.include_router(ml.router)
 app.include_router(logs.router)
