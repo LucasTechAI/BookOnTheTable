@@ -76,14 +76,14 @@ def create_user(username: str, password: str) -> Optional[Dict[str, str | int]]:
               or None if a user with the same username and password already exists.
     """
     try:
-        logger.info(f"Tentando criar usuário com username: {username}")
+        logger.info(f"Creating user with username: {username}")
         
         existing_user = get_user(username)
         hashed = pwd_context.hash(password)
         
         if existing_user:
             if pwd_context.verify(password, existing_user["hashed_password"]):
-                logger.warning(f"Usuário {username} já existe com mesma senha.")
+                logger.warning(f"User with username '{username}' already exists with the same password.")
                 return None
             else:
                 base_username = username
@@ -93,7 +93,7 @@ def create_user(username: str, password: str) -> Optional[Dict[str, str | int]]:
                     suffix += 1
                 
                 username = f"{base_username}{suffix}"
-                logger.info(f"Username alterado para {username} por conflito de senha.")
+                logger.info(f"Username '{username}' already exists, using '{username}' instead.")
         
         inserted_id = manager.insert(
             "INSERT INTO users (username, hashed_password) VALUES (?, ?)",
