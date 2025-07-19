@@ -1,86 +1,156 @@
-BookOnTheTable
-==============
+# 📚 BookOnTheTable
 
-BookOnTheTable is a web application built with FastAPI that provides a RESTful API for managing book-related data, including authentication, categorization, statistics, scraping, and dashboard visualization. The project is configured for deployment on Vercel and uses a local SQLite database.
+**BookOnTheTable** is a web application built with **FastAPI** that offers a **public RESTful API** for querying books, including features such as authentication, categorization, statistics, automated scraping, and endpoints designed for consumption by Machine Learning models.
 
-Project Structure
------------------
+> You can find all the challenge requirements and details in the official document:  
+[Tech Challenge - Phase 1 - Machine Learning Engineering (PDF)](https://github.com/LucasTechAI/BookOnTheTable/blob/main/docs/Pos_tech%20-%20Tech%20Challenge%20-%20Fase%201%20-%20Machine%20Learning%20Engineering.pdf)
 
-.
-├── books_data.csv               # Extracted book data
-├── docs                         # Documentation and challenge materials
-├── tmp/bookonthetable.db   # SQLite database
-├── main.py                      # Main execution entrypoint
-├── README.md                    # Project README
-├── requirements.txt             # Python dependencies
-├── setup                        # Setup and formatting scripts
-├── src
-│   ├── api                      # FastAPI core application
-│   ├── dashboards               # (WIP) Visual dashboards
-│   └── scraper                  # Web scraping scripts
-├── utils                        # Utility modules and helpers
-└── vercel.json                  # Deployment configuration for Vercel
+---
 
-Getting Started
----------------
+## 🌐 Public URL
 
-1. Clone the repository:
+Access the public API hosted on Vercel:
 
-    git clone https://github.com/your-user/BookOnTheTable.git
-    cd BookOnTheTable
+- 🔗 **API:** [https://book-on-the-table.vercel.app](https://book-on-the-table.vercel.app)  
+- 📑 **Swagger UI:** [https://book-on-the-table.vercel.app/docs](https://book-on-the-table.vercel.app/docs)  
+- 📘 **Redoc:** [https://book-on-the-table.vercel.app/redoc](https://book-on-the-table.vercel.app/redoc)  
 
-2. Create a virtual environment:
+---
 
-    python -m venv venv
-    source venv/bin/activate        # On Linux/macOS
-    venv\Scripts\activate           # On Windows
+## 🧩 Project Structure
 
-3. Install the dependencies:
+```bash
+BookOnTheTable/
+├── books_data.csv               # Extracted book data from scraping
+├── docs                         # PDF and challenge documents
+├── tmp/bookonthetable.db        # SQLite database
+├── main.py                      # Main entry point
+├── requirements.txt             # Project dependencies
+├── setup/                       # Helper scripts (SQL, formatters)
+├── src/
+│   ├── api/                     # FastAPI app (routes, schemas, services)
+│   ├── dashboards/              # (WIP) Streamlit dashboards
+│   ├── scraper/                 # Web scraper using BeautifulSoup
+│   └── test/                    # Automated tests
+├── utils/                       # General utilities (JWT, DB, etc.)
+├── vercel.json                  # Vercel deployment config
+└── README.md
+```
 
-    pip install -r requirements.txt
+---
 
-4. Initialize the database:
+## 🚀 How to run the API locally
 
-    sqlite3 tmp/bookonthetable.db < setup/creator.sql
+1. **Clone the repository**
 
-5. Run the application:
+```bash
+git clone https://github.com/LucasTechAI/BookOnTheTable.git
+cd BookOnTheTable
+```
 
-    uvicorn src.api.app:app --reload
+2. **Create and activate a virtual environment**
 
-Access the API docs at: http://127.0.0.1:8000/docs
+```bash
+python3 -m venv venv
+source venv/bin/activate      # Linux/macOS
+venv\Scripts\activate       # Windows
+```
 
-Features
---------
+3. **Install the dependencies**
 
-- JWT-based authentication
-- Book listing, filtering, and management
-- Category creation and retrieval
-- Usage statistics and metrics
-- Request logging middleware
-- Web scraping via BeautifulSoup
-- (Coming soon) Interactive dashboards
-- Easy deployment on Vercel
+```bash
+pip install -r requirements.txt
+```
+4. **Run the application**
 
-Deployment
-----------
+```bash
+PYTHONPATH=. uvicorn src.api.app:app --reload
+```
 
-This project includes a `vercel.json` file for seamless deployment on [Vercel](https://vercel.com/). The main entrypoint is defined in `main.py`.
+API Docs available locally at:  
+📑 http://127.0.0.1:8000/docs
 
-License
--------
+---
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+## ✅ Features
 
-Challenge
----------
+- JWT-based authentication (login, register, refresh)
+- Book listing and search
+- Category filtering
+- General and category-specific statistics
+- ML-ready endpoints (features, training data, predictions)
+- Automated scraping from books.toscrape.com
+- Structured logging via middleware
+- (Coming soon) Interactive dashboards with Streamlit
+- Continuous deployment on Vercel
 
-This project was developed as part of the "Tech Challenge - Phase 1 - Machine Learning Engineering" from Pos Tech.
+---
 
-Author
-------
+## 📡 Main Endpoints
 
-Lucas Mendes  
-Data Scientist Mid-Level
-Website: https://musicmoodai.com.br  
-Email: lucas.mendestech@gmail.com
+### Books
+- GET /api/v1/books
+- GET /api/v1/books/{id}
+- GET /api/v1/books/search?title=...&category=...
+- GET /api/v1/books/top-rated
+- GET /api/v1/books/price-range?min=10&max=50
 
+### Categories
+- GET /api/v1/categories
+
+### Health & Logs
+- GET /api/v1/health
+- GET /api/v1/logs
+- DELETE /api/v1/logs
+
+### Authentication
+- POST /api/v1/auth/register
+- POST /api/v1/auth/login
+- POST /api/v1/auth/refresh
+- GET /api/v1/auth/protected
+
+### Machine Learning
+- GET /api/v1/ml/features
+- GET /api/v1/ml/training-data
+- POST /api/v1/ml/predictions
+  
+---
+
+## 🕷️ Run Only the Scraper (Optional)
+
+If you want to run the scraper separately to update or generate the `books_data.csv` file:
+
+```bash
+cd BookOnTheTable
+python3 src/scraper/main.py
+```
+
+This will fetch all book data from [books.toscrape.com](https://books.toscrape.com/) and save it in `books_data.csv` for local use or further ML processing.
+
+---
+
+## 🛠️ Tech Stack
+
+- Python 3.10+
+- FastAPI
+- SQLite3
+- BeautifulSoup
+- Pydantic
+- Uvicorn
+- Vercel (deployment)
+- JWT
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License. See the LICENSE file for more details.
+
+---
+
+## 👨‍💻 Author
+
+**Lucas Mendes**  
+Mid-Level Data Scientist  
+🌐 https://musicmoodai.com.br  
+📧 lucas.mendestech@gmail.com
