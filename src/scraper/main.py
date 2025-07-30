@@ -1,4 +1,5 @@
 from logging import basicConfig, getLogger, INFO
+from pandas import DataFrame, to_csv
 from pathlib import Path
 import sys
 import os
@@ -18,7 +19,7 @@ logger = getLogger(__name__)
 manager = DatabaseManager(str(DB_PATH))
 
 
-def __summary(books) -> None:
+def _summary(books) -> None:
     """
     Prints a summary of the scraped books, including total categories and books per category.
     Args:
@@ -44,7 +45,7 @@ def __summary(books) -> None:
         print(f"- {cat}: {count} book(s)")
 
 
-def save_books_to_db(books: list) -> None:
+def _save_books_to_db(books: list) -> None:
     """
     Inserts all scraped books into the database in a single batch.
 
@@ -92,10 +93,11 @@ def main():
 
     try:
         books = scraper.scrape_all_books()
+        _save_books_to_db(books)
+        books = DataFrame(books)
+        books.to_csv(BASE_DIR / "data" / "books_data.csv", index=False)
 
-        save_books_to_db(books)
-
-        __summary(books)
+        _summary(books)
     except KeyboardInterrupt:
         logger.info("Scraping interrupted by user.")
     except Exception as e:
