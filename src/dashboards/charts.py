@@ -484,7 +484,6 @@ def display_charts_grid(df: pd.DataFrame) -> None:
     
     # Create sidebar
     _create_logs_sidebar()
-    
     # Filters section
     filters = create_filters_section(df)
     
