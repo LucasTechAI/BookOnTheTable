@@ -1,52 +1,45 @@
-import pandas as pd
-import streamlit as st
-from typing import Tuple, Any
-from api_client import LogsAPI
+from pandas import DataFrame, Series, to_datetime
 from config import DEFAULT_LOG_LIMIT
+from api_client import LogsAPI
+from typing import Tuple
 
 
-def load_logs_data(limit: int = DEFAULT_LOG_LIMIT) -> Tuple[pd.DataFrame, str]:
+def load_logs_data(limit: int = DEFAULT_LOG_LIMIT) -> Tuple[DataFrame, str]:
     """
-    Carrega dados dos logs com cache
-    
+    Loads logs data from the API and processes it into a DataFrame.
     Args:
-        limit (int): Limite de logs para carregar
-        
+        limit (int): The maximum number of logs to retrieve. Default is DEFAULT_LOG_LIMIT.
     Returns:
-        Tuple[pd.DataFrame, str]: (dataframe, message)
+        Tuple[DataFrame, str]: A tuple containing the DataFrame of logs and a message.
     """
     api = LogsAPI()
     logs_data, message = api.fetch_logs(limit)
     
     if logs_data:
-        # Converte para DataFrame
         if isinstance(logs_data, list):
-            df = pd.DataFrame(logs_data)
+            df = DataFrame(logs_data)
         elif isinstance(logs_data, dict) and 'logs' in logs_data:
-            df = pd.DataFrame(logs_data['logs'])
+            df = DataFrame(logs_data['logs'])
         else:
-            df = pd.DataFrame([logs_data])
+            df = DataFrame([logs_data])
         
         if not df.empty:
-            # Processa os dados
             df = process_dataframe(df)
             
         return df, message
     
-    return pd.DataFrame(), message
+    return DataFrame(), message
 
 
-def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def process_dataframe(df: DataFrame) -> DataFrame:
     """
-    Processa o DataFrame de logs adicionando colunas derivadas
-    
+    Processes the DataFrame to prepare it for analysis.
     Args:
-        df (pd.DataFrame): DataFrame original
-        
+        df (DataFrame): The DataFrame containing logs data.
     Returns:
-        pd.DataFrame: DataFrame processado
+        DataFrame: Processed DataFrame with additional columns.
     """
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df['timestamp'] = to_datetime(df['timestamp'])
     df['date'] = df['timestamp'].dt.date
     df['hour'] = df['timestamp'].dt.hour
     df['status_category'] = df['status_code'].apply(categorize_status)
@@ -56,13 +49,11 @@ def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def categorize_status(status_code: int) -> str:
     """
-    Categoriza códigos de status HTTP
-    
+    Categorizes HTTP status codes into groups.
     Args:
-        status_code (int): Código de status HTTP
-        
+        status_code (int): The HTTP status code.
     Returns:
-        str: Categoria do status
+        str: The category of the status code.
     """
     if 200 <= status_code < 300:
         return "Success"
@@ -76,15 +67,13 @@ def categorize_status(status_code: int) -> str:
         return "Other"
 
 
-def calculate_metrics(df: pd.DataFrame) -> dict:
+def calculate_metrics(df: DataFrame) -> dict:
     """
-    Calcula métricas principais dos logs
-    
+    Calculates key metrics from the logs DataFrame.
     Args:
-        df (pd.DataFrame): DataFrame de logs
-        
+        df (DataFrame): The DataFrame containing logs data.
     Returns:
-        dict: Dicionário com as métricas
+        dict: A dictionary containing calculated metrics.
     """
     if df.empty:
         return {
@@ -110,73 +99,64 @@ def calculate_metrics(df: pd.DataFrame) -> dict:
     }
 
 
-def get_status_distribution(df: pd.DataFrame) -> pd.DataFrame:
+def get_status_distribution(df: DataFrame) -> DataFrame:
     """
-    Retorna distribuição de status
-    
+    Gets the status distribution from the logs DataFrame.
     Args:
-        df (pd.DataFrame): DataFrame de logs
-        
+        df (DataFrame): The DataFrame containing logs data.
     Returns:
-        pd.DataFrame: DataFrame com distribuição de status
+        DataFrame: DataFrame with status distribution.
     """
     if df.empty:
-        return pd.DataFrame()
+        return DataFrame()
     
     status_counts = df['status_category'].value_counts().reset_index()
     status_counts.columns = ['status_category', 'count']
     return status_counts
 
 
-def get_hourly_distribution(df: pd.DataFrame) -> pd.DataFrame:
+def get_hourly_distribution(df: DataFrame) -> DataFrame:
     """
-    Retorna distribuição por hora
-    
+    Gets the hourly distribution of requests from the logs DataFrame.
     Args:
-        df (pd.DataFrame): DataFrame de logs
-        
+        df (DataFrame): The DataFrame containing logs data.
     Returns:
-        pd.DataFrame: DataFrame com distribuição por hora
+        DataFrame: DataFrame with hourly request counts.
     """
     if df.empty:
-        return pd.DataFrame()
+        return DataFrame()
     
     hourly_requests = df.groupby('hour').size().reset_index(name='requests')
     return hourly_requests
 
 
-def get_top_endpoints(df: pd.DataFrame, top_n: int = 10) -> pd.Series:
+def get_top_endpoints(df: DataFrame, top_n: int = 10) -> Series:
     """
-    Retorna os endpoints mais acessados
-    
+    Gets the top accessed endpoints from the logs DataFrame.
     Args:
-        df (pd.DataFrame): DataFrame de logs
-        top_n (int): Número de endpoints para retornar
-        
+        df (DataFrame): The DataFrame containing logs data.
+        top_n (int): The number of top endpoints to return.
     Returns:
-        pd.Series: Série com os endpoints mais acessados
+        Series: Series with the top accessed endpoints.
     """
     if df.empty:
-        return pd.Series()
+        return Series()
     
     return df['endpoint'].value_counts().head(top_n)
 
 
-def prepare_recent_logs(df: pd.DataFrame) -> pd.DataFrame:
+def prepare_recent_logs(df: DataFrame) -> DataFrame:
     """
-    Prepara dados dos logs recentes para exibição
-    
+    Prepares the recent logs DataFrame for display.
     Args:
-        df (pd.DataFrame): DataFrame de logs
-        n_logs (int): Número de logs recentes para retornar
-        
+        df (DataFrame): The DataFrame containing logs data.
     Returns:
-        pd.DataFrame: DataFrame formatado para exibição
+        DataFrame: DataFrame formatted for display.
     """
     if df.empty:
-        return pd.DataFrame()
+        return DataFrame()
 
-    display_df = df[['timestamp', 'method', 'endpoint', 'status_code', 'response_time_ms', 'ip_address']].copy()
+    display_df = df[['timestamp', 'method', 'endpoint', 'status_code', 'response_time_ms']].copy()
     display_df = display_df.sort_values('timestamp', ascending=False)
     
     display_df['timestamp'] = display_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')

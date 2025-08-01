@@ -1,21 +1,16 @@
-# components.py
-"""
-Componentes da interface do usuário
-"""
-
-import streamlit as st
-import base64
-from datetime import datetime
-from typing import Optional
+from streamlit import markdown, warning, metric, subheader, columns, dataframe
 from data_processing import calculate_metrics, prepare_recent_logs
 from styles import get_main_styles, get_footer_styles
 from config import IMAGE_PATH, FALLBACK_IMAGE_URL
-
+from base64 import b64encode
+from typing import Optional
 
 def create_header() -> None:
-    """Cria o cabeçalho da aplicação"""
-    st.markdown(get_main_styles(), unsafe_allow_html=True)
-    st.markdown("""
+    """
+    Creates the main header with title and subtitle.
+    """
+    markdown(get_main_styles(), unsafe_allow_html=True)
+    markdown("""
     <div class="main-header">
         <div class="book-icon">📚</div>
         <h1 class="main-title">BookOnTheTable</h1>
@@ -26,50 +21,47 @@ def create_header() -> None:
 
 def display_metrics(df) -> None:
     """
-    Exibe métricas principais em formato de cards
-    
-    Args:
-        df: DataFrame de logs
+    Shows key metrics in a grid layout.
     """
     if df.empty:
-        st.warning("No data available")
+        warning("No data available")
         return
     
     metrics = calculate_metrics(df)
     
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5 = columns(5)
     
     with col1:
-        st.metric("Total Requests", f"{metrics['total_requests']:,}")
+        metric("Total Requests", f"{metrics['total_requests']:,}")
 
     with col2:
-        st.metric("Average Response Time (ms)", f"{metrics['avg_response_time']:.1f}")
+        metric("Average Response Time (ms)", f"{metrics['avg_response_time']:.1f}")
 
     with col3:
-        st.metric("Success Rate", f"{metrics['success_rate']:.1f}%")
+        metric("Success Rate", f"{metrics['success_rate']:.1f}%")
 
     with col4:
-        st.metric("Unique Users", metrics['unique_users'])
+        metric("Unique Users", metrics['unique_users'])
 
     with col5:
-        st.metric("Unique IPs", metrics['unique_ips'])
+        metric("Unique IPs", metrics['unique_ips'])
 
 
 def display_recent_logs(df) -> None:
     """
-    Exibe logs recentes em tabela
-    
+    Shows recent logs in a table format.
+
     Args:
-        df: DataFrame de logs
+        df: DataFrame containing logs
     """
     if df.empty:
         return
 
-    st.subheader("Recent Logs")
+    subheader("Recent Logs")
     
     display_df = prepare_recent_logs(df)
     
-    st.dataframe(
+    dataframe(
         display_df,
         use_container_width=True,
         height=400
@@ -78,23 +70,23 @@ def display_recent_logs(df) -> None:
 
 def get_base64_image(image_path: str) -> Optional[str]:
     """
-    Converte imagem local para base64
-    
+    Reads an image file and returns its base64 encoded string.
     Args:
-        image_path (str): Caminho da imagem
-        
+        image_path (str): Path to the image file
     Returns:
-        Optional[str]: Imagem em base64 ou None se não encontrada
+        Optional[str]: Base64 encoded string of the image, or None if file not found
     """
     try:
         with open(image_path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
+            return b64encode(img_file.read()).decode()
     except FileNotFoundError:
         return None
 
 
 def create_footer() -> None:
-    """Cria o footer personalizado com informações de Lucas Mendes"""
+    """
+    Creates the footer with profile information and social links.
+    """
     
     image_base64 = get_base64_image(IMAGE_PATH)
     
@@ -103,9 +95,9 @@ def create_footer() -> None:
     else:
         profile_image_src = FALLBACK_IMAGE_URL
     
-    st.markdown(get_footer_styles(), unsafe_allow_html=True)
+    markdown(get_footer_styles(), unsafe_allow_html=True)
     
-    st.markdown(f"""
+    markdown(f"""
         <div class="improved-footer">
             <div class="footer-container">
                 <div class="profile-card">
@@ -150,45 +142,26 @@ def create_footer() -> None:
     """, unsafe_allow_html=True)
 
 
-def create_sidebar_info() -> None:
-    """Cria informações da sidebar"""
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("ℹ️ System Information")
-    st.sidebar.info(f"""
-    **Application:** BookOnTheTable Dashboard
-
-    **Version:** 1.0.0
-
-    **Last Updated:** {datetime.now().strftime('%H:%M:%S')}
-
-    **API Base:** book-on-the-table.vercel.app
-    
-    **Status:** {'🟢 Online' if True else '🔴 Offline'}
-    """)
-    
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("📚 **Useful Resources**")
-    st.sidebar.markdown("- [API Documentation](#)")
-    st.sidebar.markdown("- [User Guide](#)")
-    st.sidebar.markdown("- [Technical Support](#)")
-
-
-def create_feature_card(icon: str, title: str, description: str, features: list[str] = None, status_class: str = "") -> None:
+def create_feature_card(icon: str, 
+                        title: str, 
+                        description: str, 
+                        features: list[str] = None, 
+                        status_class: str = ""
+    ) -> None:
     """
-    Cria um card de feature estilizado em HTML.
-
+    Creates a feature card with an icon, title, description, and optional features list.
     Args:
-        icon (str): Ícone da feature
-        title (str): Título da feature
-        description (str): Descrição da feature
-        features (list, optional): Lista de itens/funcionalidades adicionais
-        status_class (str, optional): Classe CSS extra para status visual
+        icon (str): Icon to display
+        title (str): Title of the card
+        description (str): Description text
+        features (list[str]): List of features to display
+        status_class (str): CSS class for status styling
     """
     features_html = ""
     if features:
         features_html = "<ul>" + "".join(f"<li>{feature}</li>" for feature in features) + "</ul>"
 
-    st.markdown(f"""
+    markdown(f"""
     <div class="feature-card {status_class}">
         <h3>{icon} {title}</h3>
         <p>{description}</p>

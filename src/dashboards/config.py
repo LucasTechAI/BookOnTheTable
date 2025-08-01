@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+from os import getenv
+
+load_dotenv()
+
 BASE_URL = "https://book-on-the-table.vercel.app/api/v1"
 LOGIN_URL = f"{BASE_URL}/auth/login"
 REGISTER_URL = f"{BASE_URL}/auth/register"
@@ -5,8 +10,8 @@ REFRESH_URL = f"{BASE_URL}/auth/refresh"
 LOGS_URL = f"{BASE_URL}/logs/"
 
 ADMIN_CREDENTIALS = {
-    "username": "superadmin",
-    "password": "]qBKcgGG5~1OU{GR35)o@(`zv\\ja"
+    "username": getenv("ADMIN_USERNAME"),
+    "password": getenv("ADMIN_PASSWORD")
 }
 
 APP_CONFIG = {
@@ -15,7 +20,6 @@ APP_CONFIG = {
     "layout": "wide"
 }
 
-CACHE_TTL = 60  
 REQUEST_TIMEOUT = 10
 LOGS_TIMEOUT = 15
 

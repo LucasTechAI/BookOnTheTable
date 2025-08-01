@@ -38,17 +38,6 @@ def cache_with_books(func) -> callable:
     """
     return cached(cache=books_cache)(func)
 
-def cache_with_logs(func) -> callable:
-    """
-    Decorator to cache the result of a function with a TTLCache for logs.
-    This uses a cache with a maximum size of 100 and a TTL of 600 seconds.
-    Args:
-        func (callable): The function to be cached.
-    Returns:
-        callable: The cached version of the function.
-    """
-    return cached(cache=logs_cache)(func)
-
 def cache_with_books_id(func) -> callable:
     """
     Decorator to cache the result of a function with a TTLCache for book IDs.

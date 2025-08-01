@@ -1,6 +1,5 @@
 from utils.database_manager import DatabaseManager
 from logging import getLogger, basicConfig, INFO
-from src.api.utils.cache import cache_with_logs
 from json import loads, dumps
 from re import sub, IGNORECASE
 from pathlib import Path
@@ -26,7 +25,6 @@ def mask_sensitive_data(request_body: str) -> str:
             )
         return request_body
 
-@cache_with_logs
 def get_all_logs(limit: int = 100) -> list:
     """
     Get all logs from the database, limited to the specified number.

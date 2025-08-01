@@ -1,9 +1,16 @@
-import requests
-from datetime import datetime, timedelta
 from typing import Tuple, Optional, Dict, Any
+from requests import post, get, exceptions
+from datetime import datetime, timedelta
+
 from config import (
-    LOGIN_URL, REGISTER_URL, REFRESH_URL, LOGS_URL, BASE_URL,
-    ADMIN_CREDENTIALS, REQUEST_TIMEOUT, LOGS_TIMEOUT, TOKEN_EXPIRY_MINUTES
+    LOGIN_URL, 
+    REGISTER_URL, 
+    REFRESH_URL, 
+    LOGS_URL, 
+    ADMIN_CREDENTIALS, 
+    REQUEST_TIMEOUT, 
+    LOGS_TIMEOUT, 
+    TOKEN_EXPIRY_MINUTES
 )
 
 
@@ -14,20 +21,19 @@ class LogsAPI:
     """
     
     def __init__(self) -> None:
+        """
+        Initializes the API client with default values.
+        """
         self.access_token: Optional[str] = None
         self.refresh_token: Optional[str] = None
         self.token_expiry: Optional[datetime] = None
         
     def authenticate(self) -> Tuple[bool, str]:
         """
-        Autentica ou registra o usuário admin
-        
-        Returns:
-            Tuple[bool, str]: (success, message)
+        Authenticates the user using the provided credentials.
         """
         try:
-            # Primeiro tenta fazer login
-            login_response = requests.post(
+            login_response = post(
                 LOGIN_URL, 
                 json=ADMIN_CREDENTIALS, 
                 timeout=REQUEST_TIMEOUT
@@ -36,19 +42,17 @@ class LogsAPI:
             if login_response.status_code == 200:
                 tokens = login_response.json()
                 self._set_tokens(tokens)
-                return True, "Login realizado com sucesso"
+                return True, "Authenticated successfully"
             
             elif login_response.status_code == 401:
-                # Se login falhar, tenta registrar
-                register_response = requests.post(
+                register_response = post(
                     REGISTER_URL, 
                     json=ADMIN_CREDENTIALS, 
                     timeout=REQUEST_TIMEOUT
                 )
                 
                 if register_response.status_code in [200, 201]:
-                    # Após registrar, faz login
-                    login_response = requests.post(
+                    login_response = post(
                         LOGIN_URL, 
                         json=ADMIN_CREDENTIALS, 
                         timeout=REQUEST_TIMEOUT
@@ -56,27 +60,31 @@ class LogsAPI:
                     if login_response.status_code == 200:
                         tokens = login_response.json()
                         self._set_tokens(tokens)
-                        return True, "Usuário registrado e autenticado"
-                        
-        except requests.exceptions.Timeout:
-            return False, "Timeout na conexão com a API"
-        except requests.exceptions.ConnectionError:
-            return False, "Erro de conexão com a API"
+                        return True, "User registered and authenticated successfully"
+
+        except exceptions.Timeout:
+            return False, "Connection timed out"
+        except exceptions.ConnectionError:
+            return False, "Connection error"
         except Exception as e:
-            return False, f"Erro na autenticação: {str(e)}"
-        
-        return False, "Falha na autenticação"
-    
+            return False, f"Authentication error: {str(e)}"
+
+        return False, "Authentication failed"
+
     def _set_tokens(self, tokens: Dict[str, str]) -> None:
-        """Define os tokens de acesso e refresh"""
+        """
+        Sets the access and refresh tokens and calculates the token expiry time.
+        Args:
+            tokens (Dict[str, str]): Dictionary containing 'access_token' and 'refresh_token'
+        """
         self.access_token = tokens.get('access_token')
         self.refresh_token = tokens.get('refresh_token')
         self.token_expiry = datetime.now() + timedelta(minutes=TOKEN_EXPIRY_MINUTES)
     
     def refresh_access_token(self) -> Tuple[bool, str]:
         """
-        Renova o token de acesso
-        
+        Refreshes the access token using the refresh token.
+        If the refresh token is not available or expired, it re-authenticates.
         Returns:
             Tuple[bool, str]: (success, message)
         """
@@ -84,7 +92,7 @@ class LogsAPI:
             return self.authenticate()
             
         try:
-            refresh_response = requests.post(
+            refresh_response = post(
                 REFRESH_URL, 
                 json={"refresh_token": self.refresh_token},
                 timeout=REQUEST_TIMEOUT
@@ -94,9 +102,8 @@ class LogsAPI:
                 tokens = refresh_response.json()
                 self.access_token = tokens.get('access_token')
                 self.token_expiry = datetime.now() + timedelta(minutes=TOKEN_EXPIRY_MINUTES)
-                return True, "Token renovado"
+                return True, "Access token refreshed successfully"
             else:
-                # Se refresh falhar, autentica novamente
                 return self.authenticate()
                 
         except Exception:
@@ -104,10 +111,10 @@ class LogsAPI:
     
     def get_headers(self) -> Dict[str, str]:
         """
-        Retorna headers com token de autorização
-        
+        Returns the headers for API requests, including the access token.
+        If the access token is expired or not set, it refreshes the token.
         Returns:
-            Dict[str, str]: Headers para requisições
+            Dict[str, str]: Headers including Authorization and Content-Type
         """
         if not self.access_token or datetime.now() >= self.token_expiry:
             self.refresh_access_token()
@@ -119,17 +126,15 @@ class LogsAPI:
     
     def fetch_logs(self, limit: int = 1000) -> Tuple[Optional[Any], str]:
         """
-        Busca logs da API
-        
+        Fetches logs from the API with a specified limit.
         Args:
-            limit (int): Limite de logs para buscar
-            
+            limit (int): Maximum number of logs to fetch
         Returns:
-            Tuple[Optional[Any], str]: (logs_data, message)
+            Tuple[Optional[Any], str]: (logs data, message)
         """
         try:
             params = {"limit": limit}
-            response = requests.get(
+            response = get(
                 LOGS_URL, 
                 params=params,
                 headers=self.get_headers(),
@@ -141,7 +146,7 @@ class LogsAPI:
             elif response.status_code == 401:
                 success, msg = self.refresh_access_token()
                 if success:
-                    response = requests.get(
+                    response = get(
                         LOGS_URL, 
                         params=params,
                         headers=self.get_headers(),
@@ -152,57 +157,9 @@ class LogsAPI:
 
             return None, f"Error fetching logs: Status {response.status_code}"
 
-        except requests.exceptions.Timeout:
+        except exceptions.Timeout:
             return None, "Timeout fetching logs"
-        except requests.exceptions.ConnectionError:
+        except exceptions.ConnectionError:
             return None, "Connection error fetching logs"
         except Exception as e:
             return None, f"Error fetching logs: {str(e)}"
-
-        """
-        Testa todos os endpoints da API
-        
-        Returns:
-            Dict[str, Any]: Resultados dos testes
-        """
-        results = {}
-        
-        # Teste do endpoint base
-        try:
-            response = requests.get(f"{BASE_URL}/", timeout=REQUEST_TIMEOUT)
-            results['base'] = {
-                'status': response.status_code,
-                'success': response.status_code < 400,
-                'response_time': response.elapsed.total_seconds() * 1000
-            }
-        except Exception as e:
-            results['base'] = {
-                'status': 'Error',
-                'success': False,
-                'error': str(e),
-                'response_time': 0
-            }
-        
-        # Teste de autenticação
-        auth_success, auth_msg = self.authenticate()
-        results['auth'] = {
-            'success': auth_success,
-            'message': auth_msg,
-            'token_valid': self.access_token is not None
-        }
-        
-        # Teste de logs
-        if auth_success:
-            logs_data, logs_msg = self.fetch_logs(10)
-            results['logs'] = {
-                'success': logs_data is not None,
-                'message': logs_msg,
-                'data_count': len(logs_data) if logs_data else 0
-            }
-        else:
-            results['logs'] = {
-                'success': False,
-                'message': 'Não foi possível testar - falha na autenticação'
-            }
-        
-        return results

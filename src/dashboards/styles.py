@@ -2,7 +2,6 @@ def get_main_styles() -> str:
     """
     Returns the main styles for the dashboard.
     """
-
     return """
     <style>
         .main-header {

@@ -3,18 +3,31 @@
 Páginas da aplicação BookOnTheTable Dashboard
 """
 
-import streamlit as st
-import time
-from api_client import LogsAPI
-from data_processing import load_logs_data
-from charts import display_charts_grid
 from components import display_metrics, display_recent_logs, create_feature_card
+from data_processing import load_logs_data
 from config import AUTO_REFRESH_INTERVAL
+from charts import display_charts_grid
+from api_client import LogsAPI
+from streamlit import (markdown, 
+                       columns, 
+                       subheader, 
+                       metric, 
+                       info, 
+                       success, 
+                       error, 
+                       session_state, 
+                       rerun, 
+                       spinner
+)
+from time import sleep
 
 
 def home_page() -> None:
-    """Renderiza a página inicial do dashboard."""
-    st.markdown('<div class="tab-content">', unsafe_allow_html=True)
+    """
+    Home page of the BookOnTheTable Dashboard.
+    Displays the main features and quick statistics.
+    """
+    markdown('<div class="tab-content">', unsafe_allow_html=True)
 
     create_feature_card(
         icon="🏠",
@@ -25,8 +38,7 @@ def home_page() -> None:
         )
     )
 
-    # 🔄 Seção dividida em colunas
-    col1, col2 = st.columns(2)
+    col1, col2 = columns(2)
 
     with col1:
         create_feature_card(
@@ -58,11 +70,13 @@ def home_page() -> None:
 
     _display_quick_statistics()
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    markdown('</div>', unsafe_allow_html=True)
 
 def _display_api_status() -> None:
-    """Exibe o status atual da API."""
-    with st.spinner("Checking API status..."):
+    """
+    Checks the API status and displays it in a feature card.
+    """
+    with spinner("Checking API status..."):
         api = LogsAPI()
         auth_success, auth_msg = api.authenticate()
 
@@ -85,81 +99,83 @@ def _display_api_status() -> None:
 
 
 def _display_quick_statistics() -> None:
-    """Exibe estatísticas rápidas"""
-    st.subheader("📈 Quick Statistics")
+    """
+    Displays quick statistics about the API usage.
+    """
+    subheader("📈 Quick Statistics")
 
     api = LogsAPI()
     auth_success, _ = api.authenticate()
 
     if auth_success:
-        with st.spinner("Loading statistics..."):
-            df, message = load_logs_data(100)
+        with spinner("Loading statistics..."):
+            df, message = load_logs_data()
 
         if not df.empty:
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2, col3, col4 = columns(4)
 
             with col1:
-                st.metric("Requests (last 100)", len(df))
+                metric("Requests", len(df))
 
             with col2:
                 avg_response = df['response_time_ms'].mean()
-                st.metric("Avg. Response Time (ms)", f"{avg_response:.1f}")
+                metric("Avg. Response Time (ms)", f"{avg_response:.1f}")
 
             with col3:
                 success_rate = (df['status_code'].between(200, 299).sum() / len(df)) * 100
-                st.metric("Success Rate", f"{success_rate:.1f}%")
+                metric("Success Rate", f"{success_rate:.1f}%")
 
             with col4:
                 unique_ips = df['ip_address'].nunique()
-                st.metric("Unique IPs", unique_ips)
+                metric("Unique IPs", unique_ips)
         else:
-            st.info("No data available for quick statistics")
+            info("No data available for quick statistics")
     else:
-        st.error("Failed to load statistics – API is offline")
+        error("Failed to load statistics – API is offline")
 
 
 def logs_page() -> None:
-    """Página de logs"""
-    st.markdown('<div class="tab-content">', unsafe_allow_html=True)
+    """
+    Logs page of the BookOnTheTable Dashboard.
+    """
+    markdown('<div class="tab-content">', unsafe_allow_html=True)
     
-    # Get settings from sidebar
-    auto_refresh = st.session_state.get('auto_refresh', False)
-    log_limit = st.session_state.get('log_limit', 1000)
+    auto_refresh = session_state.get('auto_refresh', False)
+    log_limit = session_state.get('log_limit', 1000)
     
-    # Load data
-    with st.spinner("Loading logs..."):
+    with spinner("Loading logs..."):
         df, message = load_logs_data(log_limit)
     
     if df.empty:
         _display_logs_error(message)
-        st.markdown('</div>', unsafe_allow_html=True)
+        markdown('</div>', unsafe_allow_html=True)
         return
     
-    st.success(f"✅ {message}")
+    success(f"✅ {message}")
     
-    # Display content
-    st.subheader("📊 General Metrics")
+    subheader("📊 General Metrics")
     display_metrics(df)
     
-    st.subheader("📈 Visual Analyses")
+    subheader("📈 Visual Analyses")
     display_charts_grid(df)
     
     display_recent_logs(df)
     
-    # Auto refresh
     if auto_refresh:
-        time.sleep(AUTO_REFRESH_INTERVAL)
-        st.rerun()
+        sleep(AUTO_REFRESH_INTERVAL)
+        rerun()
     
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
+    markdown('</div>', unsafe_allow_html=True)
 
 
 def _display_logs_error(message: str) -> None:
-    """Exibe erro de carregamento de logs"""
-    st.error(f"Could not load log data: {message}")
-    st.info("""
+    """
+    Displays an error message when logs cannot be loaded.
+    Args:
+        message (str): The error message to display.
+    """
+    error(f"Could not load log data: {message}")
+    info("""
     **Possible causes:**
     - API unavailable
     - Authentication issue
