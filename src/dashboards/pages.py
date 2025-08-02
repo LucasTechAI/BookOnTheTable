@@ -1,9 +1,4 @@
-# pages.py
-"""
-Páginas da aplicação BookOnTheTable Dashboard
-"""
-
-from components import display_metrics, display_recent_logs, create_feature_card
+from components import display_metrics, create_feature_card
 from data_processing import load_logs_data
 from config import AUTO_REFRESH_INTERVAL
 from charts import display_charts_grid
@@ -28,13 +23,17 @@ def home_page() -> None:
     Displays the main features and quick statistics.
     """
     markdown('<div class="tab-content">', unsafe_allow_html=True)
+    _display_quick_statistics()
 
     create_feature_card(
         icon="🏠",
         title="Welcome to the BookOnTheTable Dashboard",
         description=(
-            "A complete monitoring and management system for the BookOnTheTable platform. "
-            "Use the tabs above to navigate through the different features."
+            "This is a comprehensive API monitoring and logging dashboard for the BookOnTheTable platform. "
+            "Developed as part of the Machine Learning Engineering postgraduate program at FIAP, "
+            "this dashboard provides real-time monitoring of API performance, request analytics, "
+            "system health metrics, and operational insights. It serves as the central hub for tracking "
+            "API usage patterns, debugging issues, and ensuring optimal system performance."
         )
     )
 
@@ -44,12 +43,18 @@ def home_page() -> None:
         create_feature_card(
             icon="🔧",
             title="Technical Information",
-            description="Details about the current API environment.",
+            description="Details about the current API environment and technologies used.",
             features=[
-                "Base API: book-on-the-table.vercel.app",
-                "API Version: v1",
-                "Authentication: JWT Bearer Token",
-                "Renewal: Automatic every 15 minutes"
+                "🌐 Base API: <a href='https://book-on-the-table.vercel.app' target='_blank'>book-on-the-table.vercel.app</a>",
+                "📡 API Version: v1",
+                "🔐 Authentication: JWT Bearer Token",
+                "⏱️ Token Renewal: Automatic every 15 minutes",
+                "🐍 Backend: Python + FastAPI",
+                "💾 Database: SQLite3",
+                "☁️ Hosting: Vercel (Serverless)",
+                "📊 Dashboard: Streamlit + Plotly",
+                "📚 API Docs: <a href='https://book-on-the-table.vercel.app/redoc' target='_blank'>/redoc (Swagger UI)</a>",
+                "🐙 GitHub Repository: <a href='https://github.com/LucasTechAI/BookOnTheTable' target='_blank'>LucasTechAI/BookOnTheTable</a>"
             ]
         )
 
@@ -59,16 +64,18 @@ def home_page() -> None:
             title="Log Monitoring",
             description="View real-time API requests, performance, and status.",
             features=[
-                "Performance metrics",
-                "Interactive charts",
-                "Endpoint analysis",
-                "User monitoring"
+                "📈 Performance metrics",
+                "📊 Interactive charts",
+                "🎯 Endpoint analysis",
+                "👥 User monitoring",
+                "🔍 Advanced filtering",
+                "⏱️ Real-time updates"
             ]
         )
         
     _display_api_status()
 
-    _display_quick_statistics()
+    
 
     markdown('</div>', unsafe_allow_html=True)
 
@@ -83,17 +90,33 @@ def _display_api_status() -> None:
     if auth_success:
         create_feature_card(
             icon="✅",
-            title="API Status",
-            description="Connection successfully established.",
-            features=["System Online"],
+            title="API Status - Online",
+            description="Connection successfully established with full access.",
+            features=[
+                "🟢 System Status: Online",
+                "🔐 Authentication: Valid JWT Token",
+                "⚡ Response Time: < 500ms",
+                "🌐 Endpoint: book-on-the-table.vercel.app",
+                "📡 Protocol: HTTPS/TLS 1.3",
+                "🛡️ Security: Active & Validated"
+            ],
             status_class="status-success"
         )
     else:
         create_feature_card(
             icon="❌",
-            title="API Status",
-            description=auth_msg,
-            features=["System Offline"],
+            title="API Status - Offline",
+            description=f"Connection failed: {auth_msg}",
+            features=[
+                "🔴 System Status: Offline",
+                "🚫 Authentication: Failed",
+                "⚠️ Data Access: Limited/None",
+                "🔧 Troubleshooting:",
+                "  • Check network connection",
+                "  • Verify API credentials",
+                "  • Confirm API availability",
+                "  • Try refreshing the page"
+            ],
             status_class="status-error"
         )
 
@@ -158,9 +181,7 @@ def logs_page() -> None:
     
     subheader("📈 Visual Analyses")
     display_charts_grid(df)
-    
-    display_recent_logs(df)
-    
+        
     if auto_refresh:
         sleep(AUTO_REFRESH_INTERVAL)
         rerun()

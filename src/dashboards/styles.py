@@ -106,10 +106,15 @@ def get_footer_styles() -> str:
         color: white;
         padding: 60px 40px 30px 40px;
         margin-top: 80px;
-        border-radius: 20px 20px 0 0;
+        border-radius: 20px 20px 20px 20px;
         box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2);
         position: relative;
         overflow: hidden;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
     
     .improved-footer::before {

@@ -1,5 +1,3 @@
-# handler_apis.py
-
 from random import choices, randint, uniform, choice
 from requests import request, exceptions, Response
 from logging import getLogger, basicConfig, INFO

@@ -32,7 +32,6 @@ def main() -> None:
     with tab2:
         logs_page()
     
-    
     create_footer()
 
 
