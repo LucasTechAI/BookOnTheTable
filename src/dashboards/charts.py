@@ -1,9 +1,13 @@
 from pandas import DataFrame, Timedelta, to_datetime
 from data_processing import (
     get_status_distribution, 
-    get_top_endpoints
+    get_top_endpoints,
+    prepare_recent_logs
 )
-import plotly.express as px
+from plotly.express import bar, line, histogram
+from plotly.graph_objects import Scatter
+from numpy import linspace, exp
+from math import sqrt, pi
 from streamlit import (markdown, 
                        date_input, 
                        cache_data,
@@ -17,8 +21,11 @@ from streamlit import (markdown,
                        plotly_chart,
                        session_state,
                        success,
-                       rerun)
+                       rerun,
+                       subheader,
+                       dataframe)
 BLUE_PALETTE = {
+    'strong': '#1e3a8a',
     'primary': '#1e40af',  
     'secondary': '#3b82f6',
     'accent': '#60a5fa',   
@@ -133,64 +140,30 @@ def create_filters_section(df: DataFrame) -> dict:
     
     markdown(
         f"""
-        <style>
-        /* Estilos mais específicos para o botão Apply Filters */
-        .stButton > button[kind="primary"],
-        button[data-testid="baseButton-primary"],
-        .stButton:first-child button,
-        div[data-testid="column"]:first-child button {{
-            background-color: {BLUE_PALETTE['primary']} !important;
-            border: 1px solid {BLUE_PALETTE['primary']} !important;
-            color: white !important;
-            font-weight: 500 !important;
+        <script>
+        function styleButtons() {{
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach((button, index) => {{
+                const text = button.textContent;
+                if (text.includes('Apply Filters')) {{
+                    button.style.backgroundColor = '{BLUE_PALETTE['strong']}';
+                    button.style.borderColor = '{BLUE_PALETTE['strong']}';
+                    button.style.color = 'white';
+                }}
+                if (text.includes('Refresh Data')) {{
+                    button.style.backgroundColor = '{BLUE_PALETTE['accent']}';
+                    button.style.borderColor = '{BLUE_PALETTE['accent']}';
+                    button.style.color = 'white';
+                }}
+            }});
         }}
         
-        .stButton > button[kind="primary"]:hover,
-        button[data-testid="baseButton-primary"]:hover,
-        .stButton:first-child button:hover,
-        div[data-testid="column"]:first-child button:hover {{
-            background-color: {BLUE_PALETTE['secondary']} !important;
-            border-color: {BLUE_PALETTE['secondary']} !important;
-            color: white !important;
-        }}
+        // Aplicar estilos quando a página carregar
+        setTimeout(styleButtons, 100);
         
-        /* Estilos mais específicos para o botão Refresh Data */
-        .stButton > button[kind="secondary"],
-        button[data-testid="baseButton-secondary"],
-        .stButton:last-child button,
-        div[data-testid="column"]:last-child button {{
-            background-color: {BLUE_PALETTE['accent']} !important;
-            border: 1px solid {BLUE_PALETTE['accent']} !important;
-            color: white !important;
-            font-weight: 500 !important;
-        }}
-        
-        .stButton > button[kind="secondary"]:hover,
-        button[data-testid="baseButton-secondary"]:hover,
-        .stButton:last-child button:hover,
-        div[data-testid="column"]:last-child button:hover {{
-            background-color: {BLUE_PALETTE['light']} !important;
-            border-color: {BLUE_PALETTE['light']} !important;
-            color: white !important;
-        }}
-        
-        /* Garantir que TODOS os botões na seção de filtros sejam azuis */
-        .stButton button {{
-            transition: all 0.3s ease !important;
-        }}
-        
-        /* Seletor ainda mais específico usando estrutura do Streamlit */
-        div[data-testid="stHorizontalBlock"] div[data-testid="column"] .stButton button {{
-            background-color: {BLUE_PALETTE['primary']} !important;
-            border-color: {BLUE_PALETTE['primary']} !important;
-            color: white !important;
-        }}
-        
-        div[data-testid="stHorizontalBlock"] div[data-testid="column"]:last-child .stButton button {{
-            background-color: {BLUE_PALETTE['accent']} !important;
-            border-color: {BLUE_PALETTE['accent']} !important;
-        }}
-        </style>
+        // Reaplica a cada mudança
+        new MutationObserver(styleButtons).observe(document.body, {{subtree: true, childList: true}});
+        </script>
         """,
         unsafe_allow_html=True
     )
@@ -296,7 +269,7 @@ def create_status_chart(df: DataFrame) -> None:
         'Other': BLUE_PALETTE['pale']            
     }
 
-    fig = px.bar(
+    fig = bar(
         status_counts,
         x='status_category',
         y='count',
@@ -378,7 +351,7 @@ def create_timeline_chart(df: DataFrame, view_option: str) -> None:
         warning("📭 No timeline data available")
         return
 
-    fig = px.line(
+    fig = line(
         grouped_df,
         x='timestamp',
         y='requests',
@@ -420,6 +393,8 @@ def create_timeline_chart(df: DataFrame, view_option: str) -> None:
 
     plotly_chart(fig, use_container_width=True)
 
+def normal_pdf(x, mu, sigma):
+    return (1.0 / (sigma * sqrt(2 * pi))) * exp(-0.5 * ((x - mu) / sigma) ** 2)
 
 def create_response_time_chart(df: DataFrame) -> None:
     """
@@ -443,7 +418,7 @@ def create_response_time_chart(df: DataFrame) -> None:
     median_time = df_clean['response_time_ms'].median()
     p95_time = df_clean['response_time_ms'].quantile(0.95)
 
-    fig = px.histogram(
+    fig = histogram(
         df_clean,
         x='response_time_ms',
         nbins=50,
@@ -453,34 +428,65 @@ def create_response_time_chart(df: DataFrame) -> None:
         histnorm='probability density'  
     )
 
+    try:
+        mu = avg_time
+        sigma = df_clean['response_time_ms'].std()
+        
+        x_min = df_clean['response_time_ms'].min()
+        x_max = df_clean['response_time_ms'].max()
+        x_curve = linspace(x_min, x_max, 200)
+        
+        y_curve = normal_pdf(x_curve, mu, sigma)
+        
+        fig.add_trace(Scatter(
+            x=x_curve,
+            y=y_curve,
+            mode='lines',
+            name='Normal Distribution Curve',
+            line=dict(color='rgba(30, 64, 175, 0.8)', width=3, dash='solid'),
+            showlegend=False,
+            hovertemplate='<b>Normal Curve</b><br>Response Time: %{x:.1f}ms<br>Density: %{y:.6f}<extra></extra>'
+        ))
+    except Exception:
+        pass
+
     fig.add_vline(
         x=avg_time, 
         line_dash="dash", 
         line_color=BLUE_PALETTE['primary'],
-        line_width=2,
-        annotation_text=f"Mean: {avg_time:.1f}ms",
-        annotation_font_color=BLUE_PALETTE['primary'],
-        annotation_position="top"
+        line_width=2
     )
     
     fig.add_vline(
         x=median_time, 
         line_dash="dot", 
         line_color=BLUE_PALETTE['accent'],
-        line_width=2,
-        annotation_text=f"Median: {median_time:.1f}ms",
-        annotation_font_color=BLUE_PALETTE['accent'],
-        annotation_position="top"
+        line_width=2
     )
     
     fig.add_vline(
         x=p95_time, 
         line_dash="dashdot", 
         line_color=BLUE_PALETTE['light'],
-        line_width=2,
-        annotation_text=f"P95: {p95_time:.1f}ms",
-        annotation_font_color=BLUE_PALETTE['light'],
-        annotation_position="top"
+        line_width=2
+    )
+
+    fig.add_annotation(
+        text=(
+            f"<b>Statistics</b><br>"
+            f"<span style='color:{BLUE_PALETTE['primary']}'>─ ─ ─</span> Mean: {avg_time:.1f}ms<br>"
+            f"<span style='color:{BLUE_PALETTE['accent']}'>· · ·</span> Median: {median_time:.1f}ms<br>"
+            f"<span style='color:{BLUE_PALETTE['light']}'>─ · ─</span> P95: {p95_time:.1f}ms"
+        ),
+        xref="paper", yref="paper",
+        x=0.02, y=0.98,
+        xanchor="left", yanchor="top",
+        showarrow=False,
+        bgcolor="rgba(255,255,255,0.9)",
+        bordercolor=BLUE_PALETTE['primary'],
+        borderwidth=1,
+        borderpad=10,
+        font=dict(size=11, color=BLUE_PALETTE['primary'])
     )
 
     fig.update_layout(
@@ -488,14 +494,7 @@ def create_response_time_chart(df: DataFrame) -> None:
         title_x=0.5,
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
-        showlegend=True,
-        legend=dict(
-            yanchor="top",
-            y=0.99,
-            xanchor="right",
-            x=0.99,
-            bgcolor="rgba(255,255,255,0.8)"
-        ),
+        showlegend=False,
         title_font_color=BLUE_PALETTE['primary'],
         font_color=BLUE_PALETTE['primary']
     )
@@ -536,7 +535,7 @@ def create_endpoint_chart(df: DataFrame) -> None:
 
     endpoint_counts = endpoint_counts.sort_values(ascending=True)
 
-    fig = px.bar(
+    fig = bar(
         x=endpoint_counts.values,
         y=endpoint_counts.index,
         orientation='h',
@@ -621,4 +620,34 @@ def display_charts_grid(df: DataFrame) -> DataFrame:
         if 'endpoint' in df_filtered.columns:
             create_endpoint_chart(df_filtered)
     
+    display_recent_logs(df_filtered)
+    
     return df_filtered
+
+
+def display_recent_logs(df: DataFrame) -> None:
+    """
+    Shows recent logs in a table format.
+
+    Args:
+        df: DataFrame containing logs
+    """
+    if df.empty:
+        return None
+
+    subheader("Recent Logs")
+
+    display_df = prepare_recent_logs(df)
+    display_df.rename(columns={
+        'timestamp': 'Timestamp',
+        'method': 'Method',
+        'endpoint': 'Endpoint',
+        'status_code': 'Status Code',
+        'response_time_ms': 'Response Time (ms)'
+    }, inplace=True)
+
+    dataframe(
+        display_df,
+        use_container_width=True,
+        height=400
+    )

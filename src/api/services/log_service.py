@@ -38,7 +38,6 @@ def get_all_logs(limit: int = 100) -> list:
         query = "SELECT * FROM logs ORDER BY timestamp DESC LIMIT ?"
         logs = manager.select(query, (limit,))
         logs = [dict(row) for row in logs]
-        # Mask sensitive data in request_body
         for log in logs:
             if "request_body" in log:
                 log["request_body"] = mask_sensitive_data(log["request_body"])

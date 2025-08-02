@@ -111,7 +111,6 @@ def cache_with_predict(func) -> callable:
     This uses a cache with a maximum size of 1000 and a TTL of 600 seconds.
     """
     def key(features):
-        # Converte a lista de objetos Pydantic ou dicts para uma tupla hashable
         return hashkey(tuple((f["price"], f["category"]) if isinstance(f, dict) else (f.price, f.category) for f in features))
     
     return cached(cache=ml_predict_cache, key=key)(func)

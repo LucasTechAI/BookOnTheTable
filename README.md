@@ -21,23 +21,91 @@ Access the public API hosted on Vercel:
 
 ```bash
 BookOnTheTable/
-├── books_data.csv               # Extracted book data from scraping
-├── docs                         # PDF and challenge documents
-├── tmp/bookonthetable.db        # SQLite database
-├── main.py                      # Main entry point
-├── requirements.txt             # Project dependencies
-├── setup/                       # Helper scripts (SQL, formatters)
+├── data/
+│   └── books_data.csv           # Extracted book data from scraping
+├── docs/
+│   ├── Pipeline.png             # System architecture diagram
+│   └── Pos_tech - Tech Challenge - Fase 1 - Machine Learning Engineering.pdf
+├── LICENSE                      # MIT License
+├── main.py                      # Main API entry point
+├── README.md                    # Project documentation
+├── requirements.txt             # Main API dependencies
+├── setup/                       # Helper scripts and configurations
+│   ├── creator.sql             # Database creation script
+│   ├── format_api.sh           # API code formatter
+│   ├── format_scraper.sh       # Scraper code formatter
+│   └── format_utils.sh         # Utils code formatter
 ├── src/
-│   ├── api/                     # FastAPI app (routes, schemas, services)
-│   ├── dashboards/              # (WIP) Streamlit dashboards
-│   ├── scraper/                 # Web scraper using BeautifulSoup
-│   └── test/                    # Automated tests
-├── utils/                       # General utilities (JWT, DB, etc.)
-├── vercel.json                  # Vercel deployment config
-└── README.md
+│   ├── api/                     # FastAPI application
+│   │   ├── app.py              # FastAPI app configuration
+│   │   ├── config.py           # API configuration settings
+│   │   ├── middleware/         # Custom middleware
+│   │   │   └── logging_middleware.py
+│   │   ├── routes/             # API endpoints
+│   │   │   ├── auth.py         # Authentication routes
+│   │   │   ├── books.py        # Book-related endpoints
+│   │   │   ├── categories.py   # Category endpoints
+│   │   │   ├── health.py       # Health check endpoints
+│   │   │   ├── home.py         # Home/root endpoints
+│   │   │   ├── logs.py         # Logging endpoints
+│   │   │   ├── ml.py           # Machine Learning endpoints
+│   │   │   └── stats.py        # Statistics endpoints
+│   │   ├── schemas/            # Pydantic models for validation
+│   │   │   ├── auth_schema.py
+│   │   │   ├── books_schema.py
+│   │   │   ├── categories_schema.py
+│   │   │   ├── health_schema.py
+│   │   │   ├── logs_schema.py
+│   │   │   ├── ml_schema.py
+│   │   │   └── stats_schema.py
+│   │   ├── services/           # Business logic layer
+│   │   │   ├── auth_service.py
+│   │   │   ├── book_service.py
+│   │   │   ├── category_service.py
+│   │   │   ├── health_service.py
+│   │   │   ├── log_service.py
+│   │   │   ├── ml_service.py
+│   │   │   └── stats_service.py
+│   │   └── utils/              # API utilities
+│   │       ├── cache.py        # Caching utilities
+│   │       └── jwt_handler.py  # JWT token handling
+│   ├── dashboards/             # Streamlit monitoring dashboard
+│   │   ├── app.py              # Dashboard main entry point
+│   │   ├── api_client.py       # API communication client
+│   │   ├── charts.py           # Interactive charts with Plotly
+│   │   ├── components.py       # Reusable UI components
+│   │   ├── config.py           # Dashboard configuration
+│   │   ├── data_processing.py  # Data processing utilities
+│   │   ├── pages.py            # Dashboard pages
+│   │   ├── styles.py           # CSS styling
+│   │   ├── requirements.txt    # Dashboard-specific dependencies
+│   │   └── img/                # Dashboard assets
+│   │       ├── logo.png        # Project logo
+│   │       └── my.jpeg         # Profile image
+│   ├── scraper/                # Web scraper using BeautifulSoup
+│   │   ├── main.py             # Scraper entry point
+│   │   └── scraping.py         # Scraping logic
+│   └── test/                   # Automated tests
+│       ├── all_routes.py       # Complete API testing
+│       └── random_routes.py    # Random endpoint testing
+├── tmp/
+│   └── bookonthetable.db       # SQLite database file
+├── utils/                      # General utilities
+│   ├── database_manager.py     # Database operations
+│   └── handler_api.py          # API request handlers
+└── vercel.json                 # Vercel deployment configuration
 ```
 
 ---
+
+## 🏗️ System Architecture
+
+The following diagram shows the complete system architecture and data flow of the BookOnTheTable platform:
+
+![System Architecture](docs/Pipeline.png)
+
+---
+
 
 ## 🚀 How to run the API locally
 
@@ -74,15 +142,25 @@ API Docs available locally at:
 
 ## ✅ Features
 
+### 🔗 API Features
 - JWT-based authentication (login, register, refresh)
-- Book listing and search
-- Category filtering
+- Book listing and search with advanced filtering
+- Category management and filtering
 - General and category-specific statistics
 - ML-ready endpoints (features, training data, predictions)
 - Automated scraping from books.toscrape.com
 - Structured logging via middleware
-- (Coming soon) Interactive dashboards with Streamlit
 - Continuous deployment on Vercel
+
+### 📊 Dashboard Features
+- Real-time API monitoring and log analysis
+- Interactive data visualization with Plotly
+- Performance metrics and response time tracking
+- Endpoint usage analytics and patterns
+- User activity and IP address monitoring
+- Advanced filtering and search capabilities
+- System health and uptime monitoring
+- Secure authentication and access control
 
 ---
 
@@ -114,6 +192,45 @@ API Docs available locally at:
 - GET /api/v1/ml/training-data
 - POST /api/v1/ml/predictions
   
+---
+
+## 📊 Dashboard - Real-time API Monitoring
+
+The project includes a comprehensive **Streamlit dashboard** for real-time API monitoring and log analysis.
+### Features:
+- 📈 Real-time API performance monitoring with Plotly
+- 🎯 Endpoint usage analytics
+- 👥 User activity tracking
+- 🔍 Advanced filtering capabilities
+- ⚡ System health monitoring
+
+### Running the Dashboard Locally:
+
+**Note:** The dashboard requires additional dependencies that exceed Vercel's size limits, so it runs separately.
+
+1. **Navigate to the dashboard directory:**
+```bash
+cd src/dashboards
+```
+
+2. **Install dashboard-specific dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+3. **Run the Streamlit dashboard:**
+```bash
+streamlit run app.py
+```
+
+The dashboard will be available at: http://localhost:8501
+
+### Why Separate Requirements?
+- Streamlit and Plotly dependencies are heavy (~100MB+)
+- Vercel has deployment size limitations for serverless functions
+- The main API remains lightweight for optimal performance
+- Dashboard can be deployed separately on Streamlit Cloud or other platforms
+
 ---
 
 ## 🕷️ Run Only the Scraper (Optional)
@@ -154,3 +271,4 @@ This project is licensed under the MIT License. See the LICENSE file for more de
 Mid-Level Data Scientist  
 🌐 https://musicmoodai.com.br  
 📧 lucas.mendestech@gmail.com
+🔗 https://www.linkedin.com/in/lucas-mendes-barbosa/

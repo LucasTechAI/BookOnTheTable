@@ -1,18 +1,47 @@
-from streamlit import markdown, warning, metric, subheader, columns, dataframe
-from data_processing import calculate_metrics, prepare_recent_logs
+from streamlit import markdown, warning, metric, columns
 from styles import get_main_styles, get_footer_styles
 from config import IMAGE_PATH, FALLBACK_IMAGE_URL
+from data_processing import calculate_metrics
 from base64 import b64encode
 from typing import Optional
+import os
 
 def create_header() -> None:
     """
     Creates the main header with title and subtitle.
     """
+    logo_path = os.path.join(os.path.dirname(__file__), "img", "logo.png")
+    logo_base64 = get_base64_image(logo_path)
+    
+    if logo_base64:
+        logo_src = f"data:image/png;base64,{logo_base64}"
+        logo_html = f'<img src="{logo_src}" alt="BookOnTheTable Logo" class="logo-icon">'
+    else:
+        logo_html = '<div class="book-icon">📚</div>'
+    
     markdown(get_main_styles(), unsafe_allow_html=True)
+    
     markdown("""
+    <style>
+    .logo-icon {
+        width: 180px;
+        height: 180px;
+        border-radius: 25%;
+        object-fit: cover;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        border: 3px solid rgba(255,255,255,0.3);
+    }
+    .book-icon {
+        font-size: 3rem;
+        margin-bottom: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    markdown(f"""
     <div class="main-header">
-        <div class="book-icon">📚</div>
+        {logo_html}
         <h1 class="main-title">BookOnTheTable</h1>
         <p class="subtitle">Monitoring and Management System</p>
     </div>
@@ -45,28 +74,6 @@ def display_metrics(df) -> None:
 
     with col5:
         metric("Unique IPs", metrics['unique_ips'])
-
-
-def display_recent_logs(df) -> None:
-    """
-    Shows recent logs in a table format.
-
-    Args:
-        df: DataFrame containing logs
-    """
-    if df.empty:
-        return
-
-    subheader("Recent Logs")
-    
-    display_df = prepare_recent_logs(df)
-    
-    dataframe(
-        display_df,
-        use_container_width=True,
-        height=400
-    )
-
 
 def get_base64_image(image_path: str) -> Optional[str]:
     """

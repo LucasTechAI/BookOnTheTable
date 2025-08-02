@@ -42,7 +42,6 @@ def main() -> None:
     access_token = tokens["access_token"]
     refresh_token = tokens["refresh_token"]
 
-    # Define a pool of test methods
     route_tests = [
         lambda: api.test_protected(access_token),
         lambda: api.test_health(access_token),
@@ -62,7 +61,6 @@ def main() -> None:
         lambda: api.test_refresh(refresh_token),
     ]
 
-    # Randomly select N routes to test
     num_routes_to_test = random.randint(5, len(route_tests))
     selected_tests = random.sample(route_tests, num_routes_to_test)
 
