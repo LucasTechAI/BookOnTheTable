@@ -270,5 +270,5 @@ This project is licensed under the MIT License. See the LICENSE file for more de
 **Lucas Mendes**  
 Mid-Level Data Scientist  
 🌐 https://musicmoodai.com.br  
-📧 lucas.mendestech@gmail.com
+📧 lucas.mendestech@gmail.com  
 🔗 https://www.linkedin.com/in/lucas-mendes-barbosa/
